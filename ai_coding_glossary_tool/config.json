@@ -1,0 +1,7 @@
+{
+  "glossary_path": "data\\glossary\\ai_coding_beginner_glossary.md",
+  "hotkey": "Ctrl+Shift+E",
+  "max_selected_chars": 240,
+  "restore_text_clipboard": true,
+  "show_window_on_start": true
+}
