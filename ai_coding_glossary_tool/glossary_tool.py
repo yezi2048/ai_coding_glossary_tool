@@ -31,8 +31,30 @@ MOD_SHIFT = 0x0004
 WM_HOTKEY = 0x0312
 WM_QUIT = 0x0012
 VK_CONTROL = 0x11
+VK_SHIFT = 0x10
+VK_MENU = 0x12
 VK_C = 0x43
+VK_E = 0x45
+VK_LSHIFT = 0xA0
+VK_RSHIFT = 0xA1
+VK_LCONTROL = 0xA2
+VK_RCONTROL = 0xA3
+VK_LMENU = 0xA4
+VK_RMENU = 0xA5
 KEYEVENTF_KEYUP = 0x0002
+
+HOTKEY_RELEASE_KEYS = (
+    VK_CONTROL,
+    VK_SHIFT,
+    VK_MENU,
+    VK_E,
+    VK_LCONTROL,
+    VK_RCONTROL,
+    VK_LSHIFT,
+    VK_RSHIFT,
+    VK_LMENU,
+    VK_RMENU,
+)
 
 user32 = ctypes.windll.user32
 
@@ -275,6 +297,19 @@ def send_ctrl_c() -> None:
     user32.keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0)
 
 
+def is_key_down(vk: int) -> bool:
+    return bool(user32.GetAsyncKeyState(vk) & 0x8000)
+
+
+def wait_for_keys_released(keys: tuple[int, ...], timeout: float = 1.2) -> bool:
+    deadline = time.perf_counter() + timeout
+    while time.perf_counter() < deadline:
+        if not any(is_key_down(key) for key in keys):
+            return True
+        time.sleep(0.025)
+    return False
+
+
 def load_config(app_dir: Path) -> dict:
     config_path = app_dir / "config.json"
     config = DEFAULT_CONFIG.copy()
@@ -479,14 +514,43 @@ class GlossaryApp:
             user32.SetForegroundWindow(self.last_foreground_hwnd)
             time.sleep(0.12)
 
-        send_ctrl_c()
-        time.sleep(0.18)
+        wait_for_keys_released(HOTKEY_RELEASE_KEYS)
 
-        text = self.get_clipboard_text() or ""
+        sentinel = f"__GLOSSARY_TOOL_COPY_{time.perf_counter_ns()}__"
+        use_sentinel = previous_clipboard is not None
+        if use_sentinel:
+            self.set_clipboard_text(sentinel)
+
+        text = ""
+        for _attempt in range(3):
+            send_ctrl_c()
+            if use_sentinel:
+                copied = self.wait_for_clipboard_change(sentinel, timeout=0.45)
+            else:
+                time.sleep(0.2)
+                copied = self.get_clipboard_text()
+
+            if copied and copied != sentinel:
+                text = copied
+                break
+            time.sleep(0.08)
+
         if self.config.get("restore_text_clipboard", True) and previous_clipboard is not None:
             self.set_clipboard_text(previous_clipboard)
 
         return text
+
+    def wait_for_clipboard_change(self, sentinel: str, timeout: float) -> str | None:
+        deadline = time.perf_counter() + timeout
+        last_text: str | None = None
+        while time.perf_counter() < deadline:
+            text = self.get_clipboard_text()
+            if text is not None:
+                last_text = text
+                if text != sentinel:
+                    return text
+            time.sleep(0.03)
+        return last_text
 
     def get_clipboard_text(self) -> str | None:
         for _ in range(8):
