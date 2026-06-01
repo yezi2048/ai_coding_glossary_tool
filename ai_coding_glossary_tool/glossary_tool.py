@@ -16,7 +16,7 @@ from tkinter import ttk
 import tkinter as tk
 
 
-APP_NAME = "AI 编程小白词典"
+APP_NAME = "码词急救包"
 DEFAULT_CONFIG = {
     "glossary_path": r"data\glossary\ai_coding_beginner_glossary.md",
     "hotkey": "Ctrl+Shift+E",

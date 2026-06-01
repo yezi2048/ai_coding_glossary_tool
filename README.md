@@ -1,6 +1,6 @@
-# AI Coding Glossary
+# 码词急救包
 
-AI Coding Glossary 是一个 Windows 本地术语解释小工具，面向刚开始接触 AI 编程、Git、命令行、域名、部署和常见开发工具的非程序员用户。
+码词急救包是一个 Windows 本地术语解释小工具，面向刚开始接触 AI 编程、Git、命令行、域名、部署和常见开发工具的非程序员用户。
 
 它的目标很简单：看到陌生术语时，选中文字，按快捷键，就能得到“小白能懂”的解释和操作风险提醒。
 
@@ -25,7 +25,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\ai_coding_glossary_tool\in
 
 安装后会创建：
 
-- 开始菜单快捷方式：`AI Coding Glossary`
+- 开始菜单快捷方式：`码词急救包`
 - 开机自启快捷方式
 - 本地安装目录：`%LOCALAPPDATA%\CodexTools\AICodingGlossary`
 
